@@ -54,7 +54,7 @@ class $modify(MyTestMod, MenuLayer) {
 
                 auto json = res.json().unwrapOr(matjson::Value{});
                 std::string source = json.contains("text")
-                    ? json["source"].asString().unwrapOr("No text found, check internet")
+                    ? json["text"].asString().unwrapOr("No text found, check internet")
                     : "No text found.";
 
                 FLAlertLayer::create("Geode Testing", source.c_str(), "OK")->show();
