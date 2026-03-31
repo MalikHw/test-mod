@@ -1,0 +1,20 @@
+{
+    "geode": "v5.4.1",
+    "gd": {
+        "win": "2.2081",
+        "android": "2.2081",
+        "mac": "2.2081",
+        "ios": "2.2081"
+    },
+    "id": "MalikHw47.geode-testing",
+    "name": "Geode Testing",
+    "version": "v1.0.0",
+    "developer": "MalikHw47",
+    "description": "Just to test a mod lol",
+    "tags": ["enhancement"],
+    "resources": {
+        "sprites": [
+            "resources/button.png"
+        ]
+    }
+}
