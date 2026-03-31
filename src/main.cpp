@@ -1,23 +1,24 @@
 #include <Geode/Geode.hpp>
 #include <Geode/modify/MenuLayer.hpp>
+#include <Geode/utils/web.hpp>
 
 using namespace geode::prelude;
 
 class $modify(MyTestMod, MenuLayer) {
+    struct Fields {
+        async::TaskHolder<web::WebResponse> m_task;
+    };
+
     bool init() {
         if (!MenuLayer::init()) return false;
-
-        // Load custom sprite from mod resources
+        
         auto spr = CCSprite::create("button.png"_spr);
         if (!spr) {
             log::error("Failed to load button.png — make sure it's in your resources folder!");
             return true;
         }
-
-        // Scale it to fit nicely alongside other bottom-menu buttons
         spr->setScale(0.9f);
 
-        // Create the button
         auto btn = CCMenuItemSpriteExtra::create(
             spr,
             this,
@@ -25,7 +26,6 @@ class $modify(MyTestMod, MenuLayer) {
         );
         btn->setID("geode-test-button");
 
-        // Add to the existing bottom-menu
         auto bottomMenu = this->getChildByID("bottom-menu");
         if (!bottomMenu) {
             log::error("Could not find bottom-menu node!");
@@ -33,12 +33,32 @@ class $modify(MyTestMod, MenuLayer) {
         }
 
         bottomMenu->addChild(btn);
-        bottomMenu->updateLayout(); // reflow the layout to include the new button
+        bottomMenu->updateLayout();
 
         return true;
     }
 
     void onTestButton(CCObject* sender) {
-        FLAlertLayer::create("Geode Testing", "geode testing", "OK")->show();
+        web::WebRequest req;
+        req.timeout(std::chrono::seconds(10));
+
+        m_fields->m_task.spawn(
+            "Fetch useless fact",
+            req.get("https://uselessfacts.jsph.pl/api/v2/facts/random?language=en"),
+            [](web::WebResponse res) {
+                if (!res.ok()) {
+                    log::error("Web request failed: {}", res.code());
+                    FLAlertLayer::create("Geode Testing", "Failed to fetch a fact :(", "OK")->show();
+                    return;
+                }
+
+                auto json = res.json().unwrapOr(matjson::Value{});
+                std::string source = json.contains("text")
+                    ? json["source"].asString().unwrapOr("No text found, check internet")
+                    : "No text found.";
+
+                FLAlertLayer::create("Geode Testing", source.c_str(), "OK")->show();
+            }
+        );
     }
 };
